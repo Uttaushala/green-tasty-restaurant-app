@@ -90,4 +90,4 @@ export class GuestSessionsService {
     private authHeaders(token: string) {
         return new HttpHeaders({ Authorization: `Bearer ${token}` });
     }
-}
+}

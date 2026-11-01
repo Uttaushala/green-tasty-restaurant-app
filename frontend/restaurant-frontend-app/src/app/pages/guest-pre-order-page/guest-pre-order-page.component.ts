@@ -154,4 +154,4 @@ export class GuestPreOrderPageComponent {
     noop(): void {
         // Guest name modal is mandatory; ignore close attempts (Esc/X)
     }
-}
+}

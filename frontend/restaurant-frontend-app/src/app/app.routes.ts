@@ -37,7 +37,7 @@ export const routes: Routes = [
     data: { authorized: true },
     children: [
       {
-        // «Group Pre-Order» opens as a window over the reservations list.
+        // Group Pre-Order opens as a window over the reservations list.
         path: ':reservationId/group-order',
         loadComponent: () =>
           import('./pages/group-order-page/group-order-page.component').then((m) => m.GroupOrderPageComponent),
