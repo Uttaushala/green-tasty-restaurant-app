@@ -41,6 +41,27 @@ public class GroupReservationService(
         if (joinedGuestsCount + 1 >= reservation.GuestCount)
             throw new GuestLimitExceededException();
 
+        return await BuildGroupReservationResponseAsync(groupReservation, reservation);
+    }
+
+    public async Task<GetGroupReservationResponse> GetOwnerGroupReservationAsync(string userId, string reservationId)
+    {
+        Reservation reservation = await reservationRepository.GetReservationByIdAsync(reservationId)
+            ?? throw new ReservationNotFoundException($"Reservation {reservationId} was not found.");
+
+        if (reservation.CustomerId != userId)
+            throw new ActionForbiddenException("Only the reservation owner can perform this action.");
+
+        GroupReservation groupReservation = await groupReservationRepository.GetByReservationIdAsync(reservationId)
+            ?? throw new GroupReservationNotFoundException();
+
+        return await BuildGroupReservationResponseAsync(groupReservation, reservation);
+    }
+
+    private async Task<GetGroupReservationResponse> BuildGroupReservationResponseAsync(
+        GroupReservation groupReservation,
+        Reservation reservation)
+    {
         Table table = await tableRepository.GetTableAsync(reservation.TableId)
             ?? throw new InvalidOperationException("Associated table not found.");
 

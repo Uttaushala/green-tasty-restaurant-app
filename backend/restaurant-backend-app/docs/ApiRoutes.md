@@ -554,6 +554,23 @@ Response: `200 OK`
 }
 ```
 
+### `GET` /reservations/{reservationId}/group-reservation
+Owner only. Same response as `GET /guest/invites/{token}`, but also works when the group is full or already submitted. Errors: 403, 404.
+Response: 200 OK
+```json
+{
+  "GroupReservationId": "string",
+  "LocationId": "string",
+  "RestaurantName": "string",
+  "LocationAddress": "string",
+  "StartTime": "2026-10-21T16:00:00Z",
+  "EndTime": "2026-10-21T17:30:00Z",
+  "MaxGuestCount": 5,
+  "TableNumber": 7,
+  "InviterName": "string"
+}
+```
+
 ### `GET` /reservations/{reservationId}/guest-session-id
 Response: `200 OK`
 ```json
@@ -1221,6 +1238,19 @@ Response: 200 OK
 ```json
 [{ "dishId": "string", "quantity": 1 }]
 ```
+
+### `POST` /group-reservations/{groupReservationId}/reminders
+Owner only. Reminds guests who have not submitted their pre-order yet (they see a banner on their pre-order page). Minimal pause between two reminders for one guest: 2 minutes.
+Errors: 403 (not owner), 404 (group / reservation / guest session not found), 400 (group reservation already submitted).
+Body: `{ "guestSessionId": "string" }` - optional; without `guestSessionId` all guests who are still choosing are reminded.
+Response: 200 OK
+```json
+{
+  "reminded": [{ "guestSessionId": "string", "guestName": "string" }],
+  "skipped": [{ "guestSessionId": "string", "guestName": "string", "reason": "already_submitted | too_soon" }]
+}
+```
+`GET /guest/sessions/{guestSessionId}` additionally returns `reminderAt` (UTC time of the last reminder, or `null`).
 
 ### `DELETE` /guest/groups/{groupReservationId}/sessions/{guestSessionId}
 Owner only. Errors: 403, 404 (session not found), 400 (session belongs to another group).

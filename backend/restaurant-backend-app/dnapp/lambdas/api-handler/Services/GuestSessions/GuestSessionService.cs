@@ -418,6 +418,59 @@ public class GuestSessionService(
         return session.Id;
     }
 
+    /// <summary>Minimal pause between two reminders for the same guest, so the owner cannot spam.</summary>
+    public static readonly TimeSpan ReminderCooldown = TimeSpan.FromMinutes(2);
+
+    public async Task<RemindGuestsResponse> RemindGuestsAsync(string userId, string groupReservationId, string? guestSessionId)
+    {
+        var group = await groupReservationRepository.GetGroupReservationByIdAsync(groupReservationId)
+            ?? throw new GroupReservationNotFoundException();
+
+        var reservation = await reservationRepository.GetReservationByIdAsync(group.ReservationId)
+            ?? throw new ReservationNotFoundException($"Reservation {group.ReservationId} was not found.");
+
+        if (reservation.CustomerId != userId)
+            throw new ActionForbiddenException("Only the reservation owner can perform this action.");
+
+        if (group.Status == GroupReservationStatus.Submitted)
+            throw new GroupReservationSubmittedException();
+
+        var sessions = await guestSessionRepository.GetAllByGroupReservationIdAsync(groupReservationId);
+        var guests = sessions.Where(s => !s.IsOwnerSession).ToList();
+
+        if (guestSessionId is not null)
+        {
+            var target = guests.FirstOrDefault(s => s.Id == guestSessionId)
+                ?? throw new GuestSessionNotFoundException("Guest session was not found.");
+            guests = [target];
+        }
+
+        var now = DateTime.UtcNow;
+        var reminded = new List<ReminderTargetResponse>();
+        var skipped = new List<SkippedReminderResponse>();
+
+        foreach (var guest in guests)
+        {
+            if (guest.IsSubmitted)
+            {
+                skipped.Add(new SkippedReminderResponse(guest.Id, guest.GuestName, "already_submitted"));
+                continue;
+            }
+
+            if (guest.LastReminderAt is { } lastReminderAt && now - lastReminderAt < ReminderCooldown)
+            {
+                skipped.Add(new SkippedReminderResponse(guest.Id, guest.GuestName, "too_soon"));
+                continue;
+            }
+
+            guest.LastReminderAt = now;
+            await guestSessionRepository.SaveAsync(guest);
+            reminded.Add(new ReminderTargetResponse(guest.Id, guest.GuestName));
+        }
+
+        return new RemindGuestsResponse(reminded, skipped);
+    }
+
     public async Task<GetGuestSessionResponse> GetGuestSessionInfoAsync(string guestSessionId)
     {
         var session = await guestSessionRepository.GetByGuestSessionId(guestSessionId)
@@ -448,7 +501,7 @@ public class GuestSessionService(
             name = user!.Attributes.First(a => a.Name == "given_name").Value;
         }
 
-        return new GetGuestSessionResponse(name, items, total, session.IsSubmitted);
+        return new GetGuestSessionResponse(name, items, total, session.IsSubmitted, session.LastReminderAt);
     }
 
 }

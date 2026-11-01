@@ -1,4 +1,4 @@
-using Amazon;
+﻿using Amazon;
 using Amazon.CognitoIdentityProvider;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
@@ -197,7 +197,9 @@ public static class RouteRegistry
             new RouteHandler(new Route(HttpMethods.DELETE, "/guest/groups/{groupReservationId}/sessions/{guestSessionId}"), ActivatorUtilities.CreateInstance<DeleteGuestSessionHandler>(provider)),
             new RouteHandler(new Route(HttpMethods.GET, "/guest/groups/{groupReservationId}/sessions"), ActivatorUtilities.CreateInstance<GetGroupSessionsHandler>(provider)),
             new RouteHandler(new Route(HttpMethods.GET, "/reservations/{reservationId}/guest-session-id"), ActivatorUtilities.CreateInstance<GetOwnerGuestSessionIdHandler>(provider)),
-            new RouteHandler(new Route(HttpMethods.POST, "/group-reservations/{groupReservationId}/submit"), ActivatorUtilities.CreateInstance<SubmitGroupReservationHandler>(provider))
+            new RouteHandler(new Route(HttpMethods.POST, "/group-reservations/{groupReservationId}/submit"), ActivatorUtilities.CreateInstance<SubmitGroupReservationHandler>(provider)),
+            new RouteHandler(new Route(HttpMethods.POST, "/group-reservations/{groupReservationId}/reminders"), ActivatorUtilities.CreateInstance<RemindGuestsHandler>(provider)),
+            new RouteHandler(new Route(HttpMethods.GET, "/reservations/{reservationId}/group-reservation"), ActivatorUtilities.CreateInstance<GetOwnerGroupReservationHandler>(provider))
         ];
         List<RouteHandler> GetAuxiliaryRoutes() => [
             new RouteHandler(new Route(HttpMethods.GET, "/feedback"), ActivatorUtilities.CreateInstance<GetFeedbackForLocationHandler>(provider)),

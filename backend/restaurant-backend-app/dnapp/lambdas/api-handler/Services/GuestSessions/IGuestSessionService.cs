@@ -18,5 +18,6 @@ public interface IGuestSessionService
     Task<OwnerGuestSessionIdResponse> GetOwnerGuestSessionIdAsync(string userId, string reservationId);
     Task<IReadOnlyList<GroupSubmittedDishResponse>> SubmitGroupReservationAsync(string userId, string groupReservationId, string reservationId);
     Task<GetGuestSessionResponse> GetGuestSessionInfoAsync(string guestSessionId);
+    Task<RemindGuestsResponse> RemindGuestsAsync(string userId, string groupReservationId, string? guestSessionId);
 }
 

@@ -1,4 +1,5 @@
 using Amazon.CognitoIdentityProvider.Model;
+using APIHandler.Constants;
 using APIHandler.Constants.Dishes;
 using APIHandler.Constants.Orders;
 using APIHandler.Entities;
@@ -730,9 +731,107 @@ public class GuestSessionServiceTests
             { dishMap.Keys, dishMap.Values, orderItems, expectedTotal }
         };
     }
+
+    private static GuestSession BuildGuest(string id, bool isSubmitted = false, bool isOwner = false, DateTime? lastReminderAt = null) =>
+        new()
+        {
+            Id = id,
+            GuestName = "Guest " + id,
+            Dishes = [],
+            GroupReservationId = "group-1",
+            IsSubmitted = isSubmitted,
+            IsOwnerSession = isOwner,
+            LastReminderAt = lastReminderAt,
+        };
+
+    private void SetupReminderGroup(string ownerId, GroupReservationStatus status, params GuestSession[] sessions)
+    {
+        _mockGroupReservationRepository
+            .Setup(r => r.GetGroupReservationByIdAsync("group-1"))
+            .ReturnsAsync(new GroupReservation { GroupReservationId = "group-1", ReservationId = "res-1", ReservationToken = "token-1", Status = status });
+        _mockReservationRepository
+            .Setup(r => r.GetReservationByIdAsync("res-1"))
+            .ReturnsAsync(new Reservation { Id = "res-1", TableId = "table-1", WaiterId = "waiter-1", CustomerId = ownerId });
+        _mockGuestSessionRepository
+            .Setup(r => r.GetAllByGroupReservationIdAsync("group-1"))
+            .ReturnsAsync(sessions.ToList());
+    }
+
+    [Fact]
+    public async Task RemindGuestsAsync_WithoutGuestId_RemindsOnlyGuestsWhoAreStillChoosing()
+    {
+        var choosing = BuildGuest("g-1");
+        var submitted = BuildGuest("g-2", isSubmitted: true);
+        var owner = BuildGuest("owner-session", isOwner: true);
+        SetupReminderGroup("owner-1", GroupReservationStatus.Open, choosing, submitted, owner);
+
+        var result = await _guestSessionService.RemindGuestsAsync("owner-1", "group-1", null);
+
+        Assert.Equal(["g-1"], result.Reminded.Select(r => r.GuestSessionId));
+        Assert.Equal(["g-2"], result.Skipped.Select(s => s.GuestSessionId));
+        Assert.Equal("already_submitted", result.Skipped[0].Reason);
+        Assert.NotNull(choosing.LastReminderAt);
+        _mockGuestSessionRepository.Verify(r => r.SaveAsync(choosing), Times.Once);
+        _mockGuestSessionRepository.Verify(r => r.SaveAsync(submitted), Times.Never);
+        _mockGuestSessionRepository.Verify(r => r.SaveAsync(owner), Times.Never);
+    }
+
+    [Fact]
+    public async Task RemindGuestsAsync_ReminderSentRecently_IsSkippedAsTooSoon()
+    {
+        var guest = BuildGuest("g-1", lastReminderAt: DateTime.UtcNow.AddSeconds(-30));
+        SetupReminderGroup("owner-1", GroupReservationStatus.Open, guest);
+
+        var result = await _guestSessionService.RemindGuestsAsync("owner-1", "group-1", "g-1");
+
+        Assert.Empty(result.Reminded);
+        Assert.Equal("too_soon", Assert.Single(result.Skipped).Reason);
+        _mockGuestSessionRepository.Verify(r => r.SaveAsync(It.IsAny<GuestSession>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task RemindGuestsAsync_CooldownPassed_RemindsAgain()
+    {
+        var guest = BuildGuest("g-1", lastReminderAt: DateTime.UtcNow - GuestSessionService.ReminderCooldown - TimeSpan.FromSeconds(5));
+        SetupReminderGroup("owner-1", GroupReservationStatus.Open, guest);
+
+        var result = await _guestSessionService.RemindGuestsAsync("owner-1", "group-1", "g-1");
+
+        Assert.Equal("g-1", Assert.Single(result.Reminded).GuestSessionId);
+        Assert.Empty(result.Skipped);
+    }
+
+    [Fact]
+    public async Task RemindGuestsAsync_NotOwner_ThrowsActionForbidden()
+    {
+        SetupReminderGroup("owner-1", GroupReservationStatus.Open, BuildGuest("g-1"));
+
+        await Assert.ThrowsAsync<ActionForbiddenException>(() => _guestSessionService.RemindGuestsAsync("someone-else", "group-1", null));
+    }
+
+    [Fact]
+    public async Task RemindGuestsAsync_GroupAlreadySubmitted_ThrowsGroupReservationSubmitted()
+    {
+        SetupReminderGroup("owner-1", GroupReservationStatus.Submitted, BuildGuest("g-1"));
+
+        await Assert.ThrowsAsync<GroupReservationSubmittedException>(() => _guestSessionService.RemindGuestsAsync("owner-1", "group-1", null));
+    }
+
+    [Fact]
+    public async Task RemindGuestsAsync_UnknownGuest_ThrowsGuestSessionNotFound()
+    {
+        SetupReminderGroup("owner-1", GroupReservationStatus.Open, BuildGuest("g-1"));
+
+        await Assert.ThrowsAsync<GuestSessionNotFoundException>(() => _guestSessionService.RemindGuestsAsync("owner-1", "group-1", "missing"));
+    }
+
+    [Fact]
+    public async Task RemindGuestsAsync_GroupNotFound_ThrowsGroupReservationNotFound()
+    {
+        _mockGroupReservationRepository
+            .Setup(r => r.GetGroupReservationByIdAsync("group-1"))
+            .ReturnsAsync((GroupReservation?)null);
+
+        await Assert.ThrowsAsync<GroupReservationNotFoundException>(() => _guestSessionService.RemindGuestsAsync("owner-1", "group-1", null));
+    }
 }
-
-
-
-
-
