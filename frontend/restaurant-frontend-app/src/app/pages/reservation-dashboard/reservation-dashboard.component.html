@@ -1,0 +1,120 @@
+<app-header />
+
+<div class="subheading">
+  <h3>Hello, {{ firstName() }} {{ lastName() }}</h3>
+
+  <p class="support">
+    <img src="assets/svg/headset.svg" alt="" width="29" height="30" />
+    <span>
+      For any assistance with your table reservation or pre-order, please call us at this number: +123 445 678 8990.
+    </span>
+  </p>
+</div>
+
+@if (!reservationsLoaded()) {
+  <p class="reservation-empty">
+    Please wait while we load your reservations.
+  </p>
+} @else if (reservations().length > 0) {
+  <ul class="reservation-list">
+    @for (reservation of reservations(); track reservation.id) {
+      <app-customer-reservation-card
+        [reservation]="reservation"
+        (cancelReservation)="requestCancel($event)"
+        (inviteGuests)="openInviteModal($event)"
+        (leaveFeedback)="openFeedback($event)"
+        (updateFeedback)="openFeedback($event)"
+      />
+    }
+  </ul>
+} @else {
+  <div class="reservation-empty">
+    <img
+      src="assets/svg/empty-reservations.svg"
+      alt=""
+      aria-hidden="true"
+    />
+
+    <p>It looks like you don't have any reservations.</p>
+
+    <a
+      class="button button--primary button--large"
+      routerLink="/tables"
+    >
+      Book a table
+    </a>
+  </div>
+}
+
+@if (
+  showEditReservationModal() &&
+  selectedReservation() &&
+  selectedTable() &&
+  selectedTimeRange()
+  ) {
+  <app-make-reservation
+    title="Edit Reservation"
+    [table]="selectedTable()!"
+    [guests]="selectedReservation()!.guestCount"
+    [selectedTimeRange]="selectedTimeRange()!"
+    [locationName]="selectedReservation()!.locationAddress"
+    (makeReservation)="
+      onSubmitEditReservation(
+        $event.timeRange,
+        $event.guests
+      )
+    "
+    (closeModal)="closeEditReservationModal()"
+  />
+}
+
+@if (
+  showEditReservationConfirmed() &&
+  selectedReservationAsReservation()
+  ) {
+  <app-reservation-confirmed
+    [reservation]="selectedReservationAsReservation()!"
+    (closed)="closeReservationConfirmed()"
+    (editReservation)="editConfirmedReservation()"
+    (cancelReservation)="cancelConfirmedReservation()"
+  />
+}
+
+@if (
+  showFeedbackModal() &&
+  selectedReservation() &&
+  selectedReservationAsReservation()
+  ) {
+  <app-feedback-window
+    [feedbackForUpdate]="selectedReservation()!.feedback"
+    [selectedReservation]="
+      selectedReservationAsReservation()!
+    "
+    (feedbackUpdated)="onFeedbackUpdated($event)"
+    (closedFeedback)="closeFeedback()"
+  />
+}
+
+@if (showInviteModal() && selectedReservationAsReservation()) {
+  <app-reservation-invite-modal
+    mode="invite"
+    [reservation]="selectedReservationAsReservation()!"
+    (closed)="closeInviteModal()"
+  />
+}
+
+@if (reservationToCancel()) {
+  <app-modal title="Cancel Reservation" width="520px" (closed)="closeCancelDialog()">
+    <p class="dialog-text">
+      Cancelling this reservation will remove all pre-orders.<br />
+      You won't be able to undo this action.
+    </p>
+    <div modal-actions class="dialog-actions">
+      <button type="button" class="button button--tertiary button--large" (click)="closeCancelDialog()">Keep it</button>
+      <button type="button" class="button button--secondary button--large danger" (click)="confirmCancel()">Cancel</button>
+    </div>
+  </app-modal>
+}
+
+<!-- Group Pre-Order opens here as a window over the list -->
+<router-outlet />

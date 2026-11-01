@@ -1,0 +1,337 @@
+@use 'app/shared/styles/abstracts/colors' as color;
+
+// The page is a window over the reservations list (Figma: «Group Pre-Order» modal, 835 px wide).
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 835px;
+  max-width: 100%;
+  max-height: 100%;
+  padding: 40px;
+  background: color.$neutral-100;
+  border-radius: 24px;
+  box-shadow: 0 0 10px 4px rgba(218, 218, 218, 0.7);
+}
+
+.close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  padding: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid color.$orange-400;
+    outline-offset: 2px;
+  }
+}
+
+.page-header {
+  flex: none;
+  margin-bottom: 24px;
+}
+
+.details {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid color.$bg-green;
+}
+
+.body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 0;
+  padding-bottom: 16px;
+  overflow-y: auto;
+}
+
+.page-title {
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 40px;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: 14px;
+  line-height: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.participants {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.footer {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid color.$bg-green;
+}
+
+.grand-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.grand-total-label {
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 40px;
+}
+
+.grand-total-value {
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 40px;
+  color: color.$green-800;
+}
+
+.title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.badge {
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  color: color.$neutral-900;
+  background: color.$neutral-200;
+  border-radius: 8px;
+
+  &--sent {
+    color: color.$neutral-900;
+    background: color.$orange-100;
+  }
+}
+
+.sync {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  margin-top: 12px;
+}
+
+.sync-text {
+  font-size: 12px;
+  line-height: 18px;
+  color: color.$neutral-600;
+
+  &--failed {
+    color: color.$red-400;
+  }
+}
+
+.sync-refresh {
+  padding: 0 0 1px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  background: none;
+  border: none;
+  border-bottom: 1px solid color.$neutral-900;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid color.$orange-400;
+    outline-offset: 2px;
+  }
+}
+
+.notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 12px;
+  background: color.$orange-30;
+  border: 1px solid color.$orange-100;
+  border-radius: 8px;
+}
+
+.notice--locked {
+  background: color.$red-30;
+  border-color: color.$red-100;
+}
+
+.notice > span {
+  flex: 1 0 0;
+  min-width: 1px;
+}
+
+.notice-action {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 0 0 2px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: color.$neutral-900;
+  background: none;
+  border: none;
+  border-bottom: 1px solid color.$neutral-900;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+
+  &:focus-visible {
+    outline: 2px solid color.$orange-400;
+    outline-offset: 2px;
+  }
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 48px 0;
+
+  &--error p {
+    color: color.$red-400;
+  }
+}
+
+.consolidated {
+  margin-top: 4px;
+  padding: 16px;
+  background: color.$neutral-0;
+  border-radius: 12px;
+}
+
+.consolidated-title {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 28px;
+}
+
+.consolidated-list {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.consolidated-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  overflow-wrap: anywhere;
+}
+
+.consolidated-empty {
+  margin-top: 8px;
+  color: color.$neutral-600;
+}
+
+.button--disabled-look,
+.footer .button:disabled {
+  color: color.$neutral-0;
+  background: color.$neutral-400;
+  border-color: color.$neutral-400;
+}
+
+.sent-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 56px;
+  padding: 8px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  color: color.$neutral-0;
+  text-align: center;
+  background: color.$neutral-400;
+  border-radius: 8px;
+}
+
+.dialog-text {
+  font-size: 14px;
+  line-height: 24px;
+
+  strong {
+    font-weight: 700;
+  }
+}
+
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+
+  // Design: «Cancel» is an underlined text button, the destructive action is a red outline.
+  .button--tertiary {
+    min-height: 0;
+    padding: 4px 8px;
+    font-weight: 500;
+    color: color.$neutral-900;
+    background: none;
+    border: none;
+    border-bottom: 1px solid color.$neutral-900;
+    border-radius: 0;
+  }
+}
+
+.danger {
+  min-height: 44px;
+  padding: 0 24px;
+  font-weight: 600;
+  border-width: 1.4px;
+  color: color.$red-400;
+  border-color: color.$red-400;
+}

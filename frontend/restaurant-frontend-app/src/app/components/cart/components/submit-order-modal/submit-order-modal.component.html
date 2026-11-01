@@ -1,0 +1,16 @@
+<app-modal title="Pre-Order Submitted" width="520px" (closed)="closeModal()">
+  <p class="body">
+    Your Pre-Order was sent successfully.<br />
+    Wait for the confirmation from the restaurant.
+  </p>
+
+  <div modal-actions class="actions">
+    <button
+      type="button"
+      class="button button--primary button--large button--full-width"
+      (click)="viewReservations.emit()"
+    >
+      View Reservations
+    </button>
+  </div>
+</app-modal>

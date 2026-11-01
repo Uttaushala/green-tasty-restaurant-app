@@ -1,0 +1,57 @@
+@use 'app/shared/styles/abstracts/colors' as color;
+
+:host {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+  gap: 10px;
+}
+
+.toast-content {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: flex-start;
+  gap: 16px;
+  min-width: 0;
+}
+
+.toast-text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.toast-title {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+}
+
+.toast-message {
+  font-size: 14px;
+  line-height: 24px;
+  white-space: pre-line;
+  overflow-wrap: break-word;
+
+  &--success {
+    font-weight: 500;
+  }
+}
+
+.toast-close {
+  display: flex;
+  flex: none;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.toast-icon {
+  flex: none;
+  width: 24px;
+  height: 24px;
+}

@@ -1,0 +1,45 @@
+<div class="modal-overlay"
+      tabindex="0"
+      role="button"
+      aria-label="Close dish view"
+      (click)="onClose()"
+      (keydown.enter)="onClose()"
+      (keydown.space)="onClose()"></div>
+<div class="modal-content" role="dialog" aria-modal="true" [attr.aria-label]="dish.name">
+  <button type="button" class="close-button" aria-label="Close" (click)="onClose()">
+    <img src="assets/svg/close.svg" alt="" width="24" height="24" />
+  </button>
+
+  <img class="dish-image" [src]="dish.imageUrl" [alt]="dish.name" />
+
+  <div class="dish-details">
+    <h3 class="dish-name">{{ dish.name }}</h3>
+
+    <div class="dish-body">
+    <p class="dish-description">{{ dish.description }}</p>
+
+    <div class="dish-info">
+      <p><strong>Calories:</strong> {{ dish.calories }} kcal</p>
+      <p class="macros">
+        <span><strong>Protein:</strong> {{ dish.proteins }}</span>
+        <span><strong>Fats:</strong> {{ dish.fats }}g</span>
+        <span><strong>Carbs:</strong> {{ dish.carbohydrates }}</span>
+      </p>
+      <p><strong>Vitamins &amp; minerals:</strong> {{ dish.vitamins }}</p>
+    </div>
+
+    <div class="price-weight">
+      <p class="price">
+        <span class="price-value">{{ dish.price | currency: 'USD' : 'symbol' : '1.0-2' }}</span>
+        <span class="weight">/{{ dish.weight }}</span>
+      </p>
+
+      @if (preOrderEnabled) {
+        <button type="button" class="button button--primary button--small preorder-btn" (click)="onPreOrder()">
+          Pre-order
+        </button>
+      }
+    </div>
+    </div>
+  </div>
+</div>

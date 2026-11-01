@@ -1,0 +1,85 @@
+<div class="not-submitted-order">
+  <div class="content">
+    <h4 class="order-title">My Pre-Order</h4>
+
+    @if (showReservation()) {
+      <p class="reservation caption">
+        {{ order().reservationAddress }}, {{ order().reservationTime }}
+      </p>
+    }
+
+    <ul class="items">
+      @for (item of order().orderItems; track item.dish.id) {
+        <li class="item">
+          <img
+            class="dish-image"
+            [src]="item.dish.imageUrl"
+            [alt]="item.dish.name"
+            width="96"
+            height="96"
+          />
+
+          <div class="info">
+            <div class="top">
+              <div class="dish-name">
+                <span class="name">{{ item.dish.name }}</span>
+                <span class="caption">Expected ready time - 10 minutes</span>
+              </div>
+
+              <button
+                type="button"
+                class="trash"
+                [attr.aria-label]="'Remove ' + item.dish.name"
+                (click)="removeDishFromOrder(item.dish.id)"
+              >
+                <img src="assets/svg/trash.svg" alt="" aria-hidden="true" width="24" height="24" />
+              </button>
+            </div>
+
+            <div class="bottom">
+              <div class="quantity">
+                <button
+                  type="button"
+                  class="step step--minus"
+                  aria-label="Decrease quantity"
+                  [disabled]="item.quantity <= 1"
+                  (click)="decrementItemQuantity(item.dish.id)"
+                >
+                  &minus;
+                </button>
+
+                <span class="value">{{ item.quantity }}</span>
+
+                <button
+                  type="button"
+                  class="step step--plus"
+                  aria-label="Increase quantity"
+                  (click)="incrementItemQuantity(item.dish.id)"
+                >
+                  +
+                </button>
+              </div>
+
+              <span class="price">{{ item.dish.price * item.quantity | currency }}</span>
+            </div>
+          </div>
+        </li>
+      }
+    </ul>
+  </div>
+
+  <footer class="footer" [class.footer--sticky]="!showReservation()">
+    <p class="grand-total">
+      <span class="grand-total-label">Grand Total</span>
+      <span class="grand-total-value">{{ totalPrice() | currency }}</span>
+    </p>
+
+    <button
+      type="button"
+      class="button button--primary button--extra-large button--full-width submit-btn"
+      (click)="submit()"
+    >
+      Submit Pre-Order
+    </button>
+  </footer>
+</div>
