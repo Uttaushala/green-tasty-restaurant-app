@@ -1,3 +1,58 @@
+# Green & Tasty — restaurant booking platform
+
+Web application for booking tables, managing reservations and placing pre-orders in the restaurants of the
+Green & Tasty network. Three roles: **client**, **waiter**, **admin**.
+
+**Live site:** https://d1qn764peiycxo.cloudfront.net
+
+## What it does
+
+- **Client:** browses locations and the menu, books a table, manages reservations, leaves feedback, places a pre-order.
+- **Group pre-order:** the reservation owner shares an invite link; guests join without an account, choose their own
+  dishes and confirm; the owner follows every guest's cart, removes a guest, reviews the consolidated order and sends it.
+- **Reminders (our own feature):** the owner can remind guests who have not chosen dishes yet, one guest or all at once.
+  The guest sees a banner on their pre-order page. The backend refuses a second reminder to the same guest within
+  2 minutes and never reminds guests who already confirmed.
+- **Waiter:** sees and confirms reservations of their location, makes a pre-order for a guest.
+- **Admin:** reporting dashboard (reports are generated and sent by scheduled jobs).
+
+## Repository layout
+
+| Folder | What is inside |
+|---|---|
+| [`frontend/restaurant-frontend-app`](frontend/restaurant-frontend-app) | Angular single-page app (standalone components, signals, SCSS), UI after the Figma mockups. Own [README](frontend/restaurant-frontend-app/README.md) and [conventions](frontend/restaurant-frontend-app/CLAUDE.md) |
+| [`backend/restaurant-backend-app`](backend/restaurant-backend-app) | .NET 10 serverless API: AWS Lambda behind API Gateway, DynamoDB, Cognito. API reference: [`docs/ApiRoutes.md`](backend/restaurant-backend-app/docs/ApiRoutes.md) |
+| [`infra/terraform`](infra/terraform) | Shared AWS infrastructure: S3, CloudFront, Cognito, EventBridge, SQS, IAM |
+
+## Architecture in one picture
+
+```
+Browser ──► CloudFront ──► S3 (Angular build)
+   │
+   └──────► API Gateway ──► Lambda api-handler (Handler → Service → Repository) ──► DynamoDB
+                                   │
+                                   └── Cognito (sign-in, roles)
+
+EventBridge ──► Lambda reports-handler ──► SQS ──► Lambda report-sender
+```
+
+Backend layers: a **handler** parses the HTTP request, a **service** holds the business rules, a **repository** talks
+to DynamoDB. Routes are registered in `Routing/RouteRegistry.cs`.
+
+## Automated tests
+
+End-to-end and API tests live in a separate repository:
+[green-tasty-aqa](https://github.com/Uttaushala/green-tasty-aqa) — Gherkin scenarios (Reqnroll), Playwright, TUnit,
+Screenplay pattern, run in GitHub Actions. Unit tests: `backend/restaurant-backend-app/Tests` and the `*.spec.ts`
+files of the frontend.
+
+## Run it
+
+- Frontend locally: see the [frontend README](frontend/restaurant-frontend-app/README.md#quick-start).
+- Deploy everything to AWS: see the guide below.
+
+---
+
 # Deployment Guide
 
 This repo uses three deployment tracks:
